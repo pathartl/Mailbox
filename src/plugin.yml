@@ -3,6 +3,7 @@ version: 0.0.1
 author: Pat Hartl
 main: tl.pathar.minecraft.mailbox.Mailbox
 api-version: 1.13
+depend: [SQLiteLib]
 commands:
   mailbox:
     description: A Test
