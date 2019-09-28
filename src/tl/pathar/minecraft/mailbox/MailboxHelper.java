@@ -9,21 +9,17 @@ import org.bukkit.block.Barrel;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Directional;
+import org.bukkit.block.data.type.RedstoneWallTorch;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.FixedMetadataValue;
 
 import static java.lang.Integer.parseInt;
 
 public class MailboxHelper {
-    public static void checkMail(MailboxPlugin plugin, Player player) {
-        Database database = plugin.sqlLib.getDatabase("Mailbox");
-
-        checkMail(database, player);
-    }
-
-    public static void checkMail(Database database, Player player) {
-
+    public static Mailbox getMailbox(Database database, Player player, MailboxPlugin plugin) {
+        Mailbox mailbox = null;
         String databaseCoordinates = (String)database.queryValue("SELECT X || ',' || Y || ',' || Z as Coordinates FROM Mailboxes WHERE Player = \"" + player.getName() + "\"", "Coordinates");
         String[] explodedCoordinates = databaseCoordinates.split(",");
 
@@ -34,26 +30,59 @@ public class MailboxHelper {
         };
 
         Block block = player.getWorld().getBlockAt(coordinates[0], coordinates[1], coordinates[2]);
-        MailboxStructure mailbox = getMailboxStructureFromPart(block);
+        MailboxStructure mailboxStructure = getMailboxStructureFromPart(block);
 
-        if (mailbox.isValidMailbox()) {
+        if (mailboxStructure.isValidMailbox()) {
+            mailbox = new Mailbox();
+
+            mailbox.structure = mailboxStructure;
+            mailbox.owner = player;
+            mailbox.hasMail = false;
+
             Barrel barrelState = (Barrel) block.getState();
             Inventory barrelInventory = barrelState.getInventory();
             ItemStack[] stack = barrelInventory.getContents();
 
-            boolean gotMail = false;
-
-            for (int i = 0; i < stack.length && !gotMail; i++) {
+            for (int i = 0; i < stack.length && !mailbox.hasMail; i++) {
                 if (stack[i] != null) {
-                    gotMail = true;
+                    mailbox.hasMail = true;
                 }
             }
 
-            if (gotMail) {
+            mailbox.structure.redstoneWallTorch.setMetadata("IsMailboxFlag", new FixedMetadataValue(plugin, true));
+            mailbox.structure.redstoneWallTorch.setMetadata("MailboxHasMail", new FixedMetadataValue(plugin, mailbox.hasMail));
+        }
+
+        return mailbox;
+    }
+
+    public static Mailbox checkMail(MailboxPlugin plugin, Player player) {
+        Database database = plugin.sqlLib.getDatabase("Mailbox");
+
+        return checkMail(database, player, plugin);
+    }
+
+    public static Mailbox checkMail(Database database, Player player, MailboxPlugin plugin) {
+        Mailbox mailbox = getMailbox(database, player, plugin);
+
+        if (mailbox != null) {
+            if (mailbox.hasMail) {
                 player.sendMessage("You've got mail!");
                 player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+                mailbox.structure.redstoneWallTorch.setMetadata("MailboxHasMail", new FixedMetadataValue(plugin, true));
+            } else {
+                player.sendMessage("You have no mail.");
+                mailbox.structure.redstoneWallTorch.setMetadata("MailboxHasMail", new FixedMetadataValue(plugin, false));
+
+                RedstoneWallTorch redstoneWallTorchBlockData = (RedstoneWallTorch) mailbox.structure.redstoneWallTorch.getBlockData();
+                redstoneWallTorchBlockData.setLit(false);
+                mailbox.structure.redstoneWallTorch.setBlockData(redstoneWallTorchBlockData);
             }
+        } else {
+            player.sendMessage("You do not have a mailbox.");
         }
+
+        return mailbox;
     }
 
     public static MailboxStructure getMailboxStructureFromPart(Block partOfMailbox) {

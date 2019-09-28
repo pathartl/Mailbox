@@ -15,20 +15,30 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.metadata.FixedMetadataValue;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class MailboxConstructionListener implements Listener {
     private MailboxPlugin plugin;
     private Database database;
+    private Map<String, Mailbox> mailboxes;
 
     public MailboxConstructionListener(MailboxPlugin _plugin) {
         plugin = _plugin;
         database = plugin.sqlLib.getDatabase("Mailbox");
+        mailboxes = new HashMap<>();
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
+        Mailbox playerMailbox = MailboxHelper.checkMail(database, player, plugin);;
 
+        if (playerMailbox != null && playerMailbox.structure.isValidMailbox()) {
+            mailboxes.put(player.getName(), playerMailbox);
+        }
     }
 
     @EventHandler
@@ -36,11 +46,16 @@ public class MailboxConstructionListener implements Listener {
         Block block = event.getBlock();
 
         if (block.getType() == Material.REDSTONE_WALL_TORCH) {
-            if (block.getMetadata("IsMailboxFlag").get(0).asBoolean()) {
-                RedstoneWallTorch redstoneWallTorchBlockData = (RedstoneWallTorch) block.getBlockData();
-
-                redstoneWallTorchBlockData.setLit(false);
-                block.setBlockData(redstoneWallTorchBlockData);
+            if (block.getMetadata("IsMailboxFlag").size() > 0 && block.getMetadata("IsMailboxFlag").get(0).asBoolean()) {
+                if (block.getMetadata("MailboxHasMail").size() > 0 && !block.getMetadata("MailboxHasMail").get(0).asBoolean()) {
+                    RedstoneWallTorch redstoneWallTorchBlockData = (RedstoneWallTorch) block.getBlockData();
+                    redstoneWallTorchBlockData.setLit(false);
+                    block.setBlockData(redstoneWallTorchBlockData);
+                } else {
+                    RedstoneWallTorch redstoneWallTorchBlockData = (RedstoneWallTorch) block.getBlockData();
+                    redstoneWallTorchBlockData.setLit(true);
+                    block.setBlockData(redstoneWallTorchBlockData);
+                }
             }
         }
     }
