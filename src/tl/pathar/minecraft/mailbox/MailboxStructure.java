@@ -17,6 +17,6 @@ public class MailboxStructure {
             return false;
         }
 
-        return true;
+        return barrel.getType() == Material.BARREL && fence.getType() == Material.OAK_FENCE && redstoneWallTorch.getType() == Material.REDSTONE_WALL_TORCH;
     }
 }

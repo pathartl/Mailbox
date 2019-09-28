@@ -6,18 +6,34 @@ import org.bukkit.World;
 import org.bukkit.block.Barrel;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.type.Fence;
+import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.type.RedstoneWallTorch;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.metadata.FixedMetadataValue;
 
 public class MailboxConstructionListener implements Listener {
     private Mailbox plugin;
 
     public MailboxConstructionListener(Mailbox _plugin) {
         plugin = _plugin;
+    }
+
+    @EventHandler
+    public void onRedStone(BlockPhysicsEvent event) {
+        Block block = event.getBlock();
+
+        if (block.getType() == Material.REDSTONE_WALL_TORCH) {
+            if (block.getMetadata("IsMailboxFlag").get(0).asBoolean()) {
+                RedstoneWallTorch redstoneWallTorchBlockData = (RedstoneWallTorch) block.getBlockData();
+
+                redstoneWallTorchBlockData.setLit(false);
+                block.setBlockData(redstoneWallTorchBlockData);
+            }
+        }
     }
 
     @EventHandler
@@ -34,9 +50,16 @@ public class MailboxConstructionListener implements Listener {
                 if (mailbox.isValidMailbox()) {
                     player.sendMessage("You've constructed a mailbox!");
 
-                    Barrel barrel = (Barrel) mailbox.barrel.getState();
+                    Barrel barrelState = (Barrel) mailbox.barrel.getState();
+                    RedstoneWallTorch redstoneWallTorchBlockData = (RedstoneWallTorch) mailbox.redstoneWallTorch.getBlockData();
 
-                    barrel.setCustomName(player.getName() + "'s Mailbox");
+                    mailbox.redstoneWallTorch.setMetadata("IsMailboxFlag", new FixedMetadataValue(plugin, true));
+
+                    barrelState.setCustomName(player.getName() + "'s Mailbox");
+                    barrelState.update();
+
+                    redstoneWallTorchBlockData.setLit(false);
+                    mailbox.redstoneWallTorch.setBlockData(redstoneWallTorchBlockData);
                 }
         }
     }
@@ -53,6 +76,8 @@ public class MailboxConstructionListener implements Listener {
         switch (partOfMailbox.getType()) {
             case BARREL:
                 structure.barrel = partOfMailbox;
+                Directional directional = (Directional)partOfMailbox.getBlockData();
+                BlockFace facing = directional.getFacing();
 
                 Block possibleFenceBlock = blockAtCoordinate(x, y - 1, z, world);
 
@@ -60,34 +85,28 @@ public class MailboxConstructionListener implements Listener {
                     structure.fence = possibleFenceBlock;
                 }
 
-                Block[] surroundingBlocks = new Block[4];
+                BlockFace mailboxFlagFace = null;
 
-                surroundingBlocks[0] = blockAtCoordinate(x + 1, y, z, world);
-                surroundingBlocks[1] = blockAtCoordinate(x - 1, y, z, world);
-                surroundingBlocks[2] = blockAtCoordinate(x, y, z + 1, world);
-                surroundingBlocks[3] = blockAtCoordinate(x, y, z - 1, world);
+                switch (facing) {
+                    case NORTH:
+                        mailboxFlagFace = BlockFace.EAST;
+                        break;
 
-                boolean alreadyFoundTorch = false;
-                boolean otherSpotsEmpty = true;
+                    case EAST:
+                        mailboxFlagFace = BlockFace.SOUTH;
+                        break;
 
-                for (int i = 0; i < 4; i++) {
-                    // If anything but redstone torch or air, fail
-                    if (surroundingBlocks[i].getType() != Material.AIR && surroundingBlocks[i].getType() != Material.REDSTONE_WALL_TORCH) {
-                        otherSpotsEmpty = false;
-                    }
+                    case SOUTH:
+                        mailboxFlagFace = BlockFace.WEST;
+                        break;
 
-                    if (surroundingBlocks[i].getType() == Material.REDSTONE_WALL_TORCH) {
-                        // If we've found a torch here, but have already found a torch in our loop, fail
-                        if (alreadyFoundTorch) {
-                            otherSpotsEmpty = false;
-                        }
+                    case WEST:
+                        mailboxFlagFace = BlockFace.NORTH;
+                        break;
+                }
 
-                        alreadyFoundTorch = true;
-                    }
-
-                    if (alreadyFoundTorch && otherSpotsEmpty) {
-                        structure.redstoneWallTorch = surroundingBlocks[i];
-                    }
+                if (mailboxFlagFace != null) {
+                    structure.redstoneWallTorch = partOfMailbox.getRelative(mailboxFlagFace);
                 }
 
                 break;
