@@ -3,7 +3,7 @@ package tl.pathar.minecraft.mailbox;
 import com.pablo67340.SQLiteLib.Main.SQLiteLib;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class Mailbox extends JavaPlugin {
+public class MailboxPlugin extends JavaPlugin {
     public SQLiteLib sqlLib;
 
     @Override

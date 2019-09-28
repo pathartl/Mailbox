@@ -16,7 +16,7 @@ import org.bukkit.inventory.ItemStack;
 import static java.lang.Integer.parseInt;
 
 public class MailboxHelper {
-    public static void checkMail(Mailbox plugin, Player player) {
+    public static void checkMail(MailboxPlugin plugin, Player player) {
         Database database = plugin.sqlLib.getDatabase("Mailbox");
 
         checkMail(database, player);

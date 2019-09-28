@@ -16,10 +16,10 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.metadata.FixedMetadataValue;
 
 public class MailboxConstructionListener implements Listener {
-    private Mailbox plugin;
+    private MailboxPlugin plugin;
     private Database database;
 
-    public MailboxConstructionListener(Mailbox _plugin) {
+    public MailboxConstructionListener(MailboxPlugin _plugin) {
         plugin = _plugin;
         database = plugin.sqlLib.getDatabase("Mailbox");
     }

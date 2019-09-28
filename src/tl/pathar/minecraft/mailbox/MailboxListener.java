@@ -3,21 +3,16 @@ package tl.pathar.minecraft.mailbox;
 import org.bukkit.Material;
 import org.bukkit.block.Barrel;
 import org.bukkit.block.Block;
-import org.bukkit.block.Chest;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.metadata.MetadataValue;
-
-import java.util.List;
 
 public class MailboxListener implements Listener {
-    public Mailbox plugin;
+    public MailboxPlugin plugin;
 
-    public MailboxListener(Mailbox _plugin) {
+    public MailboxListener(MailboxPlugin _plugin) {
         plugin = _plugin;
     }
 
