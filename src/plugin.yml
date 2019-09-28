@@ -5,6 +5,6 @@ main: tl.pathar.minecraft.mailbox.Mailbox
 api-version: 1.13
 depend: [SQLiteLib]
 commands:
-  mailbox:
-    description: A Test
-    usage: /mailbox
+  checkmail:
+    description: Check your mailbox
+    usage: /checkmail

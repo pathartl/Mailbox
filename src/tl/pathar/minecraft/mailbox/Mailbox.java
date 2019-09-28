@@ -18,7 +18,7 @@ public class Mailbox extends JavaPlugin {
                 "\t\"Z\"\tINTEGER\n" +
                 ");");
 
-        getCommand("mailbox").setExecutor(new ExampleCommand(this));
+        getCommand("checkmail").setExecutor(new MailboxCommand(this));
         // getServer().getPluginManager().registerEvents(new MailboxListener(this), this);
         getServer().getPluginManager().registerEvents(new MailboxConstructionListener(this), this);
     }
