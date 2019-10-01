@@ -13,7 +13,7 @@ public class MailboxPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        sqlLib = SQLiteLib.hookSQLiteLib(this);
+        sqlLib = new SQLiteLib(this);
 
         sqlLib.initializeDatabase("Mailbox", "CREATE TABLE IF NOT EXISTS \"Mailboxes\" (\n" +
                 "\t\"Id\"\tINTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,\n" +
@@ -22,6 +22,8 @@ public class MailboxPlugin extends JavaPlugin {
                 "\t\"Y\"\tINTEGER,\n" +
                 "\t\"Z\"\tINTEGER\n" +
                 ");");
+
+        mailboxes = new HashMap<>();
 
         getCommand("checkmail").setExecutor(new MailboxCommand(this));
         // getServer().getPluginManager().registerEvents(new MailboxListener(this), this);

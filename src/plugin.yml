@@ -3,7 +3,6 @@ version: 0.0.1
 author: Pat Hartl
 main: tl.pathar.minecraft.mailbox.MailboxPlugin
 api-version: 1.13
-depend: [SQLiteLib]
 commands:
   checkmail:
     description: Check your mailbox
