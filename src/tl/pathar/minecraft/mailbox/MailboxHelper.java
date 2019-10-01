@@ -41,10 +41,11 @@ public class MailboxHelper {
 
             Barrel barrelState = (Barrel) block.getState();
             Inventory barrelInventory = barrelState.getInventory();
-            ItemStack[] stack = barrelInventory.getContents();
 
-            for (int i = 0; i < stack.length && !mailbox.hasMail; i++) {
-                if (stack[i] != null) {
+            mailbox.stacks = barrelInventory.getContents();
+
+            for (int i = 0; i < mailbox.stacks.length && !mailbox.hasMail; i++) {
+                if (mailbox.stacks[i] != null) {
                     mailbox.hasMail = true;
                 }
             }
@@ -56,13 +57,13 @@ public class MailboxHelper {
         return mailbox;
     }
 
-    public static Mailbox checkMail(MailboxPlugin plugin, Player player) {
+    public static Mailbox checkMail(MailboxPlugin plugin, Player player, boolean calledByOwner) {
         Database database = plugin.sqlLib.getDatabase("Mailbox");
 
-        return checkMail(database, player, plugin);
+        return checkMail(database, player, plugin, calledByOwner);
     }
 
-    public static Mailbox checkMail(Database database, Player player, MailboxPlugin plugin) {
+    public static Mailbox checkMail(Database database, Player player, MailboxPlugin plugin, boolean calledByOwner) {
         Mailbox mailbox = getMailbox(database, player, plugin);
 
         if (mailbox != null) {
@@ -71,7 +72,10 @@ public class MailboxHelper {
                 player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
                 mailbox.structure.redstoneWallTorch.setMetadata("MailboxHasMail", new FixedMetadataValue(plugin, true));
             } else {
-                player.sendMessage("You have no mail.");
+                if (calledByOwner) {
+                    player.sendMessage("You have no mail.");
+                }
+
                 mailbox.structure.redstoneWallTorch.setMetadata("MailboxHasMail", new FixedMetadataValue(plugin, false));
 
                 RedstoneWallTorch redstoneWallTorchBlockData = (RedstoneWallTorch) mailbox.structure.redstoneWallTorch.getBlockData();

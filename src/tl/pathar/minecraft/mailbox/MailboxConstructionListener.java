@@ -12,7 +12,11 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.metadata.FixedMetadataValue;
 
 import java.util.HashMap;
@@ -22,22 +26,46 @@ import java.util.Map;
 public class MailboxConstructionListener implements Listener {
     private MailboxPlugin plugin;
     private Database database;
-    private Map<String, Mailbox> mailboxes;
 
     public MailboxConstructionListener(MailboxPlugin _plugin) {
         plugin = _plugin;
         database = plugin.sqlLib.getDatabase("Mailbox");
-        mailboxes = new HashMap<>();
+
+        for (Player player : plugin.getServer().getOnlinePlayers()) {
+            Mailbox playerMailbox = MailboxHelper.checkMail(database, player, plugin, true);
+
+            if (playerMailbox != null && playerMailbox.structure.isValidMailbox()) {
+                plugin.mailboxes.put(player.getName(), playerMailbox);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onBarrelInventory(InventoryCloseEvent event) {
+        Inventory inventory = event.getInventory();
+
+        if (inventory.getType() == InventoryType.BARREL) {
+            Location inventoryLocation = inventory.getLocation();
+
+            for (Map.Entry<String, Mailbox> entry : plugin.mailboxes.entrySet()) {
+                String playerName = entry.getKey();
+                Mailbox mailbox = entry.getValue();
+
+                if (mailbox.structure != null && mailbox.owner != null && mailbox.structure.isValidMailbox() && inventoryLocation.equals(mailbox.structure.barrel.getLocation())) {
+                    MailboxHelper.checkMail(database, mailbox.owner, plugin, false);
+                }
+            }
+        }
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
-        Mailbox playerMailbox = MailboxHelper.checkMail(database, player, plugin);;
+        Mailbox playerMailbox = MailboxHelper.checkMail(database, player, plugin, true);
 
         if (playerMailbox != null && playerMailbox.structure.isValidMailbox()) {
-            mailboxes.put(player.getName(), playerMailbox);
+            plugin.mailboxes.put(player.getName(), playerMailbox);
         }
     }
 

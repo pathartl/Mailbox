@@ -22,7 +22,7 @@ public class MailboxCommand implements CommandExecutor {
 
         Player player = plugin.getServer().getPlayer(sender.getName());
 
-        MailboxHelper.checkMail(plugin, player);
+        MailboxHelper.checkMail(plugin, player, true);
 
         return true;
     }

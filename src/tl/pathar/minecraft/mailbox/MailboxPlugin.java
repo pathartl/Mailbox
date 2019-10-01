@@ -1,10 +1,15 @@
 package tl.pathar.minecraft.mailbox;
 
 import com.pablo67340.SQLiteLib.Main.SQLiteLib;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MailboxPlugin extends JavaPlugin {
     public SQLiteLib sqlLib;
+    public Map<String, Mailbox> mailboxes;
 
     @Override
     public void onEnable() {
